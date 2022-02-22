@@ -1,18 +1,18 @@
 AddCSLuaFile()
 
 -- ConVars
-local medium_respawn_health = CreateConVar("ttt_medium_respawn_health", "50")
+local medium_respawn_health = CreateConVar("ttt_medium_respawn_health", "50", FCVAR_NONE, "The amount of health a medium will respawn with", 1, 100)
 local medium_weaker_each_respawn = CreateConVar("ttt_medium_weaker_each_respawn", "0")
 local medium_announce_death = CreateConVar("ttt_medium_announce_death", "0")
 local medium_killer_smoke = CreateConVar("ttt_medium_killer_smoke", "0")
-local medium_killer_footstep_time = CreateConVar("ttt_medium_killer_footstep_time", "0")
+local medium_killer_footstep_time = CreateConVar("ttt_medium_killer_footstep_time", "0", FCVAR_NONE, "The amount of time a medium's killer's footsteps should show before fading. Set to 0 to disable", 1, 60)
 local medium_killer_haunt = CreateConVar("ttt_medium_killer_haunt", "1")
-local medium_killer_haunt_power_max = CreateConVar("ttt_medium_killer_haunt_power_max", "100")
-local medium_killer_haunt_power_rate = CreateConVar("ttt_medium_killer_haunt_power_rate", "10")
-local medium_killer_haunt_move_cost = CreateConVar("ttt_medium_killer_haunt_move_cost", "25")
-local medium_killer_haunt_jump_cost = CreateConVar("ttt_medium_killer_haunt_jump_cost", "50")
-local medium_killer_haunt_drop_cost = CreateConVar("ttt_medium_killer_haunt_drop_cost", "75")
-local medium_killer_haunt_attack_cost = CreateConVar("ttt_medium_killer_haunt_attack_cost", "100")
+local medium_killer_haunt_power_max = CreateConVar("ttt_medium_killer_haunt_power_max", "100", FCVAR_NONE, "The maximum amount of power a medium can have when haunting their killer", 1, 200)
+local medium_killer_haunt_power_rate = CreateConVar("ttt_medium_killer_haunt_power_rate", "10", FCVAR_NONE, "The amount of power to regain per second when a medium is haunting their killer", 1, 25)
+local medium_killer_haunt_move_cost = CreateConVar("ttt_medium_killer_haunt_move_cost", "25", FCVAR_NONE, "The amount of power to spend when a medium is moving their killer via a haunting. Set to 0 to disable", 0, 100)
+local medium_killer_haunt_jump_cost = CreateConVar("ttt_medium_killer_haunt_jump_cost", "50", FCVAR_NONE, "The amount of power to spend when a medium is making their killer jump via a haunting. Set to 0 to disable", 0, 100)
+local medium_killer_haunt_drop_cost = CreateConVar("ttt_medium_killer_haunt_drop_cost", "75", FCVAR_NONE, "The amount of power to spend when a medium is making their killer drop their weapon via a haunting. Set to 0 to disable", 0, 100)
+local medium_killer_haunt_attack_cost = CreateConVar("ttt_medium_killer_haunt_attack_cost", "100", FCVAR_NONE, "The amount of power to spend when a medium is making their killer attack via a haunting. Set to 0 to disable", 0, 100)
 local medium_killer_haunt_without_body = CreateConVar("ttt_medium_killer_haunt_without_body", "1")
 
 -- Globals

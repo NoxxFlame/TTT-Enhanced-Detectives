@@ -1,12 +1,12 @@
 AddCSLuaFile()
 
 -- ConVars
-local paladin_explosion_immune = CreateConVar("paladin_explosion_immune", "1")
+local paladin_explosion_immune = CreateConVar("ttt_paladin_explosion_immune", "1")
 local paladin_explosion_protect_self = CreateConVar("ttt_paladin_explosion_protect_self", "1")
 
 -- Globals
 hook.Add("TTTSyncGlobals", "EnhancedPaladin_TTTSyncGlobals", function()
-    SetGlobalBool("paladin_explosion_protect_self", paladin_explosion_protect_self:GetBool())
+    SetGlobalBool("ttt_paladin_explosion_protect_self", paladin_explosion_protect_self:GetBool())
 end)
 
 -- Explosion damage reduction
