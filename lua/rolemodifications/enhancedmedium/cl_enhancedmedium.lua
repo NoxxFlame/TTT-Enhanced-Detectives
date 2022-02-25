@@ -63,7 +63,7 @@ hook.Add("TTTSpectatorShowHUD", "EnhancedMedium_Haunting_TTTSpectatorShowHUD", f
     local max_power = GetGlobalInt("ttt_medium_killer_haunt_power_max", 100)
     local current_power = cli:GetNWInt("MediumHauntingPower", 0)
 
-    HUD:PaintPowersHUD(powers, max_power, current_power, willpower_colors, L.haunt_title)
+    CRHUD:PaintPowersHUD(powers, max_power, current_power, willpower_colors, L.haunt_title)
 end)
 
 -- Haunting Smoke
