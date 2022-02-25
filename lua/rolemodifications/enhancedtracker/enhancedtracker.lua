@@ -9,7 +9,7 @@ hook.Add("TTTSyncGlobals", "EnhancedTracker_TTTSyncGlobals", function()
 end)
 
 -- Manage Death
-hook.Add( "PlayerDeath", "EnhancedTracker_PlayerDeath", function( victim, infl, attacker )
+hook.Add("PlayerDeath", "EnhancedTracker_PlayerDeath", function( victim, infl, attacker)
     local valid_kill = IsPlayer(attacker) and attacker ~= victim and GetRoundState() == ROUND_ACTIVE
 
     if valid_kill and victim:IsTracker() and not victim:GetNWBool("IsZombifying", false) then
@@ -25,11 +25,12 @@ hook.Add( "PlayerDeath", "EnhancedTracker_PlayerDeath", function( victim, infl, 
             attacker:PrintMessage(HUD_PRINTCENTER, "You have killed the " .. ROLE_STRINGS[ROLE_TRACKER] .. "! You are blinded by guilt for " .. duration .. " seconds")
         end
     end
-end )
+end)
 
 -- Cleanup
 hook.Add("TTTEndRound", "EnhancedTracker_TTTEndRound", function()
     for _, v in pairs(player.GetAll()) do
         v:SetNWBool("blindedbytracker", false)
     end
+    timer.Remove("EnhancedTrackerBlindTimer")
 end)
