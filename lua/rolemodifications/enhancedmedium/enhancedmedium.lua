@@ -199,7 +199,7 @@ hook.Add("TTTSpectatorHUDKeyPress", "EnhancedMedium_TTTSpectatorHUDKeyPress", fu
             cost = medium_killer_haunt_jump_cost:GetInt()
         }
 
-        return true, "HauntingPower"
+        return true, "MediumHauntingPower"
     end
 end)
 
