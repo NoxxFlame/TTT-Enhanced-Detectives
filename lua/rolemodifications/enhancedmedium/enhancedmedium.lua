@@ -1,5 +1,17 @@
 AddCSLuaFile()
 
+local hook = hook
+local IsPlayer = IsPlayer
+local IsValid = IsValid
+local math = math
+local net = net
+local pairs = pairs
+local player = player
+local table = table
+local timer = timer
+
+local GetAllPlayers = player.GetAll
+
 -- ConVars
 local medium_respawn_health = CreateConVar("ttt_medium_respawn_health", "50", FCVAR_NONE, "The amount of health a medium will respawn with", 1, 100)
 local medium_weaker_each_respawn = CreateConVar("ttt_medium_weaker_each_respawn", "0")
@@ -29,7 +41,7 @@ end)
 -- Haunting
 local deadMediums = {}
 hook.Add("TTTPrepareRound", "EnhancedMedium_TTTPrepareRound", function()
-    for _, v in pairs(player.GetAll()) do
+    for _, v in pairs(GetAllPlayers()) do
         v:SetNWBool("MediumHaunted", false)
         v:SetNWBool("MediumHaunting", false)
         v:SetNWString("MediumHauntingTarget", nil)
@@ -132,8 +144,8 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
         end
         victim:PrintMessage(HUD_PRINTCENTER, "Your attacker has been haunted.")
         if medium_announce_death:GetBool() then
-            for _, v in pairs(player.GetAll()) do
-                if v ~= attacker and v ~= victim and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
+            for _, v in pairs(GetAllPlayers()) do
+                if v ~= attacker and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
                     v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been killed.")
                 end
             end
@@ -248,12 +260,13 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
             end
         end
 
-        if #respawning > 0 and medium_announce_death:GetBool() then
+        local respawnCount = table.Count(respawning)
+        if respawnCount > 0 and medium_announce_death:GetBool() then
             for _, v in pairs(GetAllPlayers()) do
                 if v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
                     if not respawning[v:SteamID64()] then
                         v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
-                    elseif #respawning > 1 then
+                    elseif respawnCount > 1 then
                         timer.Simple(3, function()
                             v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
                         end)

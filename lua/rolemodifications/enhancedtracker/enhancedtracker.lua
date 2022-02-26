@@ -1,5 +1,13 @@
 AddCSLuaFile()
 
+local hook = hook
+local IsPlayer = IsPlayer
+local pairs = pairs
+local player = player
+local timer = timer
+
+local GetAllPlayers = player.GetAll
+
 -- ConVars
 local tracker_blind_time = CreateConVar("ttt_tracker_blind_time", "5", FCVAR_NONE, "The number of seconds to blind the Tracker's killer. Set to 0 to disable.", 0, 100)
 
@@ -29,7 +37,7 @@ end)
 
 -- Cleanup
 hook.Add("TTTEndRound", "EnhancedTracker_TTTEndRound", function()
-    for _, v in pairs(player.GetAll()) do
+    for _, v in pairs(GetAllPlayers()) do
         v:SetNWBool("blindedbytracker", false)
     end
     timer.Remove("EnhancedTrackerBlindTimer")
