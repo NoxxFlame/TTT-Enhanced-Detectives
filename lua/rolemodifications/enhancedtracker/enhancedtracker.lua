@@ -1,7 +1,6 @@
 AddCSLuaFile()
 
 local hook = hook
-local IsPlayer = IsPlayer
 local pairs = pairs
 local player = player
 local timer = timer
