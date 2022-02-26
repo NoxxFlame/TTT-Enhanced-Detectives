@@ -1,5 +1,12 @@
 AddCSLuaFile()
 
+local hook = hook
+local IsValid = IsValid
+local pairs = pairs
+local player = player
+
+local GetAllPlayers = player.GetAll
+
 -- ConVars
 local paladin_explosion_immune = CreateConVar("ttt_paladin_explosion_immune", "1")
 local paladin_explosion_protect_self = CreateConVar("ttt_paladin_explosion_protect_self", "1")
@@ -17,7 +24,7 @@ hook.Add("EntityTakeDamage", "EnhancedPaladin_EntityTakeDamage", function(ent, d
         if not ent:IsPaladin() or paladin_explosion_protect_self:GetBool() then
             local withPaladin = false
             local radius = GetGlobalFloat("ttt_paladin_aura_radius", 262.45)
-            for _, v in pairs(player.GetAll()) do
+            for _, v in pairs(GetAllPlayers()) do
                 if v:IsPaladin() and v:GetPos():Distance(ent:GetPos()) <= radius then
                     withPaladin = true
                     break
