@@ -133,7 +133,7 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
         victim:PrintMessage(HUD_PRINTCENTER, "Your attacker has been haunted.")
         if medium_announce_death:GetBool() then
             for _, v in pairs(player.GetAll()) do
-                if v ~= attacker and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
+                if v ~= attacker and v ~= victim and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
                     v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been killed.")
                 end
             end
@@ -208,7 +208,7 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
     if ply:IsSpec() then return end
 
     if ply:GetNWBool("MediumHaunted", false) then
-        local respawn = false
+        local respawning = {}
         local mediumUsers = table.GetKeys(deadMediums)
         for _, key in pairs(mediumUsers) do
             local medium = deadMediums[key]
@@ -239,7 +239,7 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
                         mediumBody:Remove()
                         deadMedium:PrintMessage(HUD_PRINTCENTER, "Your attacker died and you have been respawned.")
                         deadMedium:PrintMessage(HUD_PRINTTALK, "Your attacker died and you have been respawned.")
-                        respawn = true
+                        respawning[deadMedium:SteamID64()] = true
                     else
                         deadMedium:PrintMessage(HUD_PRINTCENTER, "Your attacker died but your body has been destroyed.")
                         deadMedium:PrintMessage(HUD_PRINTTALK, "Your attacker died but your body has been destroyed.")
@@ -248,10 +248,16 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
             end
         end
 
-        if respawn and medium_announce_death:GetBool() then
+        if #respawning > 0 and medium_announce_death:GetBool() then
             for _, v in pairs(GetAllPlayers()) do
                 if v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
-                    v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
+                    if not respawning[v:SteamID64()] then
+                        v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
+                    elseif #respawning > 1 then
+                        timer.Simple(3, function()
+                            v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
+                        end)
+                    end
                 end
             end
         end
