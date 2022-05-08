@@ -1,3 +1,5 @@
+local hook = hook
+
 -- Tutorial
 hook.Add("TTTTutorialRoleTextExtra", "EnhancedMedium_TTTTutorialRoleTextExtra", function(role, titleLabel, roleIcon, htmlData)
     if role == ROLE_MEDIUM then
