@@ -1,3 +1,7 @@
+local hook = hook
+local IsValid = IsValid
+local surface = surface
+
 -- Tutorial
 hook.Add("TTTTutorialRoleTextExtra", "EnhancedTracker_TTTTutorialRoleTextExtra", function(role, titleLabel, roleIcon, htmlData)
     if role == ROLE_TRACKER then
