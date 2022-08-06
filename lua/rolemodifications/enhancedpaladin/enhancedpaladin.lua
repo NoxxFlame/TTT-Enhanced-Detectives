@@ -28,7 +28,7 @@ hook.Add("EntityTakeDamage", "EnhancedPaladin_EntityTakeDamage", function(ent, d
             local paladin = nil
             local radius = GetGlobalFloat("ttt_paladin_aura_radius", 262.45)
             for _, v in pairs(GetAllPlayers()) do
-                if v:IsPaladin() and v:GetPos():Distance(ent:GetPos()) <= radius then
+                if v:IsActivePaladin() and v:GetPos():Distance(ent:GetPos()) <= radius then
                     paladin = v
                     break
                 end
