@@ -86,8 +86,13 @@ local function PlayerRoleChangedByItem(ply, tgt, item)
     end
 end
 hook.Add("TTTPlayerRoleChangedByItem", "EnhancedMedium_TTTPlayerRoleChangedByItem", PlayerRoleChangedByItem)
+
 -- DEPRECATED in 1.6.16
-hook.Add("TTTPlayerDefibRoleChange", "EnhancedMedium_TTTPlayerDefibRoleChange", PlayerRoleChangedByItem)
+hook.Add("TTTPlayerDefibRoleChange", "EnhancedMedium_TTTPlayerDefibRoleChange", function(ply, tgt)
+    -- Don't run this version of the hook if 1.6.16 or later is installed
+    if CRVersion("1.6.16") then return end
+    PlayerRoleChangedByItem(ply, tgt, nil)
+end)
 
 -- Hide the role of the player that killed the medium if haunting is enabled
 hook.Add("TTTDeathNotifyOverride", "EnhancedMedium_TTTDeathNotifyOverride", function(victim, inflictor, attacker, reason, killerName, role)
