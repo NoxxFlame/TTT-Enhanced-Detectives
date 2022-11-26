@@ -80,10 +80,18 @@ hook.Add("TTTPlayerSpawnForRound", "EnhancedMedium_TTTPlayerSpawnForRound", func
 end)
 
 -- Un-haunt the device owner if they used their device on the medium
-hook.Add("TTTPlayerDefibRoleChange", "EnhancedMedium_TTTPlayerDefibRoleChange", function(ply, tgt)
+local function PlayerRoleChangedByItem(ply, tgt, item)
     if tgt:IsMedium() and tgt:GetNWString("MediumHauntingTarget", nil) == ply:SteamID64() then
         ply:SetNWBool("MediumHaunted", false)
     end
+end
+hook.Add("TTTPlayerRoleChangedByItem", "EnhancedMedium_TTTPlayerRoleChangedByItem", PlayerRoleChangedByItem)
+
+-- DEPRECATED in 1.6.16
+hook.Add("TTTPlayerDefibRoleChange", "EnhancedMedium_TTTPlayerDefibRoleChange", function(ply, tgt)
+    -- Don't run this version of the hook if 1.6.16 or later is installed
+    if CRVersion("1.6.16") then return end
+    PlayerRoleChangedByItem(ply, tgt, nil)
 end)
 
 -- Hide the role of the player that killed the medium if haunting is enabled
