@@ -11,7 +11,10 @@ local timer = timer
 
 local GetAllPlayers = player.GetAll
 
--- ConVars
+-------------
+-- CONVARS --
+-------------
+
 local medium_respawn_health = CreateConVar("ttt_medium_respawn_health", "50", FCVAR_NONE, "The amount of health a medium will respawn with", 1, 100)
 local medium_weaker_each_respawn = CreateConVar("ttt_medium_weaker_each_respawn", "0")
 local medium_announce_death = CreateConVar("ttt_medium_announce_death", "0")
@@ -25,6 +28,7 @@ local medium_killer_haunt_jump_cost = CreateConVar("ttt_medium_killer_haunt_jump
 local medium_killer_haunt_drop_cost = CreateConVar("ttt_medium_killer_haunt_drop_cost", "75", FCVAR_NONE, "The amount of power to spend when a medium is making their killer drop their weapon via a haunting. Set to 0 to disable", 0, 100)
 local medium_killer_haunt_attack_cost = CreateConVar("ttt_medium_killer_haunt_attack_cost", "100", FCVAR_NONE, "The amount of power to spend when a medium is making their killer attack via a haunting. Set to 0 to disable", 0, 100)
 local medium_killer_haunt_without_body = CreateConVar("ttt_medium_killer_haunt_without_body", "1")
+local medium_haunt_saves_lover = CreateConVar("ttt_medium_haunt_saves_lover", "1", FCVAR_NONE, "Whether the medium's lover should survive if the medium is haunting a player", 0, 1)
 
 -- Globals
 hook.Add("TTTSyncGlobals", "EnhancedMedium_TTTSyncGlobals", function()
@@ -37,16 +41,20 @@ hook.Add("TTTSyncGlobals", "EnhancedMedium_TTTSyncGlobals", function()
     SetGlobalInt("ttt_medium_killer_haunt_drop_cost", medium_killer_haunt_drop_cost:GetInt())
 end)
 
--- Haunting
+--------------
+-- HAUNTING --
+--------------
+
 local deadMediums = {}
 hook.Add("TTTPrepareRound", "EnhancedMedium_TTTPrepareRound", function()
     for _, v in pairs(GetAllPlayers()) do
         v:SetNWBool("MediumHaunted", false)
         v:SetNWBool("MediumHaunting", false)
         v:SetNWString("MediumHauntingTarget", nil)
-        v:SetNWInt("MediumHauntingPower", 0)
-        timer.Remove(v:Nick() .. "MediumHauntingPower")
-        timer.Remove(v:Nick() .. "MediumHauntingSpectate")
+        v:SetNWBool("MediumPossessing", false)
+        v:SetNWInt("MediumPossessingPower", 0)
+        timer.Remove(v:Nick() .. "MediumPossessingPower")
+        timer.Remove(v:Nick() .. "MediumPossessingSpectate")
     end
     deadMediums = {}
 end)
@@ -64,9 +72,10 @@ local function ResetPlayer(ply)
     end
     ply:SetNWBool("MediumHaunting", false)
     ply:SetNWString("MediumHauntingTarget", nil)
-    ply:SetNWInt("MediumHauntingPower", 0)
-    timer.Remove(ply:Nick() .. "MediumHauntingPower")
-    timer.Remove(ply:Nick() .. "MediumHauntingSpectate")
+    ply:SetNWBool("MediumPossessing", false)
+    ply:SetNWInt("MediumPossessingPower", 0)
+    timer.Remove(ply:Nick() .. "MediumPossessingPower")
+    timer.Remove(ply:Nick() .. "MediumPossessingSpectate")
 end
 
 hook.Add("TTTPlayerRoleChanged", "EnhancedMedium_TTTPlayerRoleChanged", function(ply, oldRole, newRole)
@@ -80,18 +89,10 @@ hook.Add("TTTPlayerSpawnForRound", "EnhancedMedium_TTTPlayerSpawnForRound", func
 end)
 
 -- Un-haunt the device owner if they used their device on the medium
-local function PlayerRoleChangedByItem(ply, tgt, item)
+hook.Add("TTTPlayerRoleChangedByItem", "EnhancedMedium_TTTPlayerRoleChangedByItem", function(ply, tgt, itme)
     if tgt:IsMedium() and tgt:GetNWString("MediumHauntingTarget", nil) == ply:SteamID64() then
         ply:SetNWBool("MediumHaunted", false)
     end
-end
-hook.Add("TTTPlayerRoleChangedByItem", "EnhancedMedium_TTTPlayerRoleChangedByItem", PlayerRoleChangedByItem)
-
--- DEPRECATED in 1.6.16
-hook.Add("TTTPlayerDefibRoleChange", "EnhancedMedium_TTTPlayerDefibRoleChange", function(ply, tgt)
-    -- Don't run this version of the hook if 1.6.16 or later is installed
-    if CRVersion("1.6.16") then return end
-    PlayerRoleChangedByItem(ply, tgt, nil)
 end)
 
 -- Hide the role of the player that killed the medium if haunting is enabled
@@ -110,25 +111,35 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
     local valid_kill = IsPlayer(attacker) and attacker ~= victim and GetRoundState() == ROUND_ACTIVE
     if valid_kill and victim:IsMedium() and not victim:GetNWBool("IsZombifying", false) then
         attacker:SetNWBool("MediumHaunted", true)
+        victim:SetNWBool("MediumHaunting", true)
+        victim:SetNWString("MediumHauntingTarget", attacker:SteamID64())
 
         if medium_killer_haunt:GetBool() then
-            victim:SetNWBool("MediumHaunting", true)
-            victim:SetNWString("MediumHauntingTarget", attacker:SteamID64())
-            victim:SetNWInt("MediumHauntingPower", 0)
-            timer.Create(victim:Nick() .. "MediumHauntingPower", 1, 0, function()
+            victim:SetNWBool("MediumPossessing", true)
+            victim:SetNWInt("MediumPossessingPower", 0)
+            timer.Create(victim:Nick() .. "MediumPossessingPower", 1, 0, function()
                 -- If haunting without a body is disabled, check to make sure the body exists still
                 if not medium_killer_haunt_without_body:GetBool() then
                     local mediumBody = victim.server_ragdoll or victim:GetRagdollEntity()
                     if not IsValid(mediumBody) then
-                        timer.Remove(victim:Nick() .. "MediumHauntingPower")
-                        timer.Remove(victim:Nick() .. "MediumHauntingSpectate")
+                        timer.Remove(victim:Nick() .. "MediumPossessingPower")
+                        timer.Remove(victim:Nick() .. "MediumPossessingSpectate")
                         attacker:SetNWBool("MediumHaunted", false)
                         victim:SetNWBool("MediumHaunting", false)
                         victim:SetNWString("MediumHauntingTarget", nil)
-                        victim:SetNWInt("MediumHauntingPower", 0)
+                        victim:SetNWBool("MediumPossessing", false)
+                        victim:SetNWInt("MediumPossessingPower", 0)
 
                         victim:PrintMessage(HUD_PRINTCENTER, "Your body has been destroyed, removing your tether to the world.")
                         victim:PrintMessage(HUD_PRINTTALK, "Your body has been destroyed, removing your tether to the world.")
+
+                        if medium_haunt_saves_lover:GetBool() then
+                            local loverSID = victim:GetNWString("TTTCupidLover", "")
+                            if loverSID ~= "" then
+                                local lover = player.GetBySteamID64(loverSID)
+                                lover:PrintMessage(HUD_PRINTTALK, "Your lover's body was destroyed!")
+                            end
+                        end
                         return
                     end
                 end
@@ -139,14 +150,14 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
                     victim:Spectate(OBS_MODE_CHASE)
                 end
 
-                local power = victim:GetNWInt("MediumHauntingPower", 0)
+                local power = victim:GetNWInt("MediumPossessingPower", 0)
                 local power_rate = medium_killer_haunt_power_rate:GetInt()
                 local new_power = math.Clamp(power + power_rate, 0, medium_killer_haunt_power_max:GetInt())
-                victim:SetNWInt("MediumHauntingPower", new_power)
+                victim:SetNWInt("MediumPossessingPower", new_power)
             end)
 
             -- Lock the victim's view on their attacker
-            timer.Create(victim:Nick() .. "MediumHauntingSpectate", 1, 1, function()
+            timer.Create(victim:Nick() .. "MediumPossessingSpectate", 1, 1, function()
                 victim:SetRagdollSpec(false)
                 victim:Spectate(OBS_MODE_CHASE)
                 victim:SpectateEntity(attacker)
@@ -162,6 +173,16 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
             attacker:PrintMessage(HUD_PRINTCENTER, "You have been haunted.")
         end
         victim:PrintMessage(HUD_PRINTCENTER, "Your attacker has been haunted.")
+
+        local loverSID = ""
+        if medium_haunt_saves_lover:GetBool() then
+            loverSID = victim:GetNWString("TTTCupidLover", "")
+            if loverSID ~= "" then
+                local lover = player.GetBySteamID64(loverSID)
+                lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died... but they are haunting someone!")
+            end
+        end
+
         if medium_announce_death:GetBool() then
             for _, v in pairs(GetAllPlayers()) do
                 if v ~= attacker and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
@@ -230,11 +251,14 @@ hook.Add("TTTSpectatorHUDKeyPress", "EnhancedMedium_TTTSpectatorHUDKeyPress", fu
             cost = medium_killer_haunt_jump_cost:GetInt()
         }
 
-        return true, "MediumHauntingPower"
+        return true, "MediumPossessingPower"
     end
 end)
 
--- Respawn
+-------------
+-- RESPAWN --
+-------------
+
 hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker, dmginfo)
     if ply:IsSpec() then return end
 
@@ -247,9 +271,10 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
                 local deadMedium = medium.player
                 deadMedium:SetNWBool("MediumHaunting", false)
                 deadMedium:SetNWString("MediumHauntingTarget", nil)
-                deadMedium:SetNWInt("MediumHauntingPower", 0)
-                timer.Remove(deadMedium:Nick() .. "MediumHauntingPower")
-                timer.Remove(deadMedium:Nick() .. "MediumHauntingSpectate")
+                deadMedium:SetNWBool("MediumPossessing", false)
+                deadMedium:SetNWInt("MediumPossessingPower", 0)
+                timer.Remove(deadMedium:Nick() .. "MediumPossessingPower")
+                timer.Remove(deadMedium:Nick() .. "MediumPossessingSpectate")
                 if deadMedium:IsMedium() and not deadMedium:Alive() then
                     -- Find the Medium's corpse
                     local mediumBody = deadMedium.server_ragdoll or deadMedium:GetRagdollEntity()
@@ -299,7 +324,10 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
     end
 end)
 
--- Footsteps
+---------------
+-- FOOTSTEPS --
+---------------
+
 hook.Add("PlayerFootstep", "EnhancedMedium_PlayerFootstep", function(ply, pos, foot, sound, volume, rf)
     if not IsValid(ply) or ply:IsSpec() or not ply:Alive() then return true end
     if ply:WaterLevel() ~= 0 then return end
@@ -317,4 +345,127 @@ hook.Add("PlayerFootstep", "EnhancedMedium_PlayerFootstep", function(ply, pos, f
     net.WriteTable(Color(138, 4, 4))
     net.WriteUInt(killer_footstep_time, 8)
     net.Broadcast()
+end)
+
+------------------
+-- CUPID LOVERS --
+------------------
+
+local function IsPhantomHaunting(ply)
+    return ply:GetNWBool("PhantomHaunting", false) and ply:IsPhantom() and not ply:Alive()
+end
+
+hook.Add("TTTCupidShouldLoverSurvive", "Phantom_TTTCupidShouldLoverSurvive", function(ply, lover)
+    if phantom_haunt_saves_lover:GetBool() and (IsPhantomHaunting(ply) or IsPhantomHaunting(lover)) then
+        return true
+    end
+end)
+
+hook.Add("PostPlayerDeath", "Phantom_Lovers_PostPlayerDeath", function(ply)
+    local loverSID = ply:GetNWString("TTTCupidLover", "")
+    if loverSID == "" then return end
+
+    local lover = player.GetBySteamID64(loverSID)
+    if not IsPlayer(lover) then return end
+
+    if IsPhantomHaunting(lover) then
+        lover:PrintMessage(HUD_PRINTTALK, "Your lover has died and so you will not survive if you respawn!")
+        lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died and so you will not survive if you respawn!")
+    end
+end)
+
+------------------
+-- CUPID LOVERS --
+------------------
+
+local function IsMediumHaunting(ply)
+    return ply:GetNWBool("MediumHaunting", false) and ply:IsMedium() and not ply:Alive()
+end
+
+hook.Add("TTTCupidShouldLoverSurvive", "EnhancedMedium_TTTCupidShouldLoverSurvive", function(ply, lover)
+    if phantom_haunt_saves_lover:GetBool() and (IsMediumHaunting(ply) or IsMediumHaunting(lover)) then
+        return true
+    end
+end)
+
+hook.Add("PostPlayerDeath", "EnhancedMedium_Lovers_PostPlayerDeath", function(ply)
+    local loverSID = ply:GetNWString("TTTCupidLover", "")
+    if loverSID == "" then return end
+
+    local lover = player.GetBySteamID64(loverSID)
+    if not IsPlayer(lover) then return end
+
+    if IsMediumHaunting(lover) then
+        lover:PrintMessage(HUD_PRINTTALK, "Your lover has died and so you will not survive if you respawn!")
+        lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died and so you will not survive if you respawn!")
+    end
+end)
+
+------------------------------
+-- EXORCISM DEVICE OVERRIDE --
+------------------------------
+
+hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, class)
+    if class == "weapon_pha_exorcism" then
+        function SWEP:DoCleanse()
+            local owner = self:GetOwner()
+            if IsPlayer(ply) and ply:Alive() and not ply:IsSpec() then
+                ply:EmitSound(cured)
+
+                if ply:GetNWBool("PhantomHaunted", false) then
+                    for _, v in pairs(player.GetAll()) do
+                        if v:GetNWString("PhantomHauntingTarget", "") == ply:SteamID64() then
+                            ply:SetNWBool("PhantomHaunted", false)
+                            v:SetNWBool("PhantomHaunting", false)
+                            v:SetNWString("PhantomHauntingTarget", nil)
+                            v:SetNWBool("PhantomPossessing", false)
+                            v:SetNWInt("PhantomPossessingPower", 0)
+                            timer.Remove(v:Nick() .. "PhantomPossessingPower")
+                            timer.Remove(v:Nick() .. "PhantomPossessingSpectate")
+                            v:PrintMessage(HUD_PRINTCENTER, "Your spirit has been cleansed from your target.")
+
+                            if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() then
+                                local loverSID = v:GetNWString("TTTCupidLover", "")
+                                if loverSID ~= "" then
+                                    local lover = player.GetBySteamID64(loverSID)
+                                    lover:PrintMessage(HUD_PRINTTALK, "Your lover was exorcised from their host!")
+                                end
+                            end
+                        end
+                    end
+                end
+
+                if ply:GetNWBool("MediumHaunted", false) then
+                    for _, v in pairs(player.GetAll()) do
+                        if v:GetNWString("MediumHauntingTarget", "") == ply:SteamID64() then
+                            ply:SetNWBool("MediumHaunted", false)
+                            v:SetNWBool("MediumHaunting", false)
+                            v:SetNWString("MediumHauntingTarget", nil)
+                            v:SetNWBool("MediumPossessing", false)
+                            v:SetNWInt("MediumPossessingPower", 0)
+                            timer.Remove(v:Nick() .. "MediumPossessingPower")
+                            timer.Remove(v:Nick() .. "MediumPossessingSpectate")
+                            v:PrintMessage(HUD_PRINTCENTER, "Your spirit has been cleansed from your target.")
+
+                            if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() then
+                                local loverSID = v:GetNWString("TTTCupidLover", "")
+                                if loverSID ~= "" then
+                                    local lover = player.GetBySteamID64(loverSID)
+                                    lover:PrintMessage(HUD_PRINTTALK, "Your lover was exorcised from their host!")
+                                end
+                            end
+                        end
+                    end
+                end
+
+                self:Remove()
+            else
+                if ply == owner then
+                    self:SetNextSecondaryFire(CurTime() + 1)
+                else
+                    self:SetNextPrimaryFire(CurTime() + 1)
+                end
+            end
+        end
+    end
 end)

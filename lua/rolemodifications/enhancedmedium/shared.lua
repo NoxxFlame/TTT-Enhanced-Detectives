@@ -2,7 +2,7 @@ AddCSLuaFile()
 
 -- Should show spectator hud
 ROLE_SHOULD_SHOW_SPECTATOR_HUD[ROLE_MEDIUM] = function(ply)
-    if ply:GetNWBool("MediumHaunting") then
+    if ply:GetNWBool("MediumPossessing") then
         return true
     end
 end
@@ -69,5 +69,9 @@ table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
 })
 table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
     cvar = "ttt_medium_killer_haunt_without_body",
+    type = ROLE_CONVAR_TYPE_BOOL
+})
+table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
+    cvar = "ttt_medium_haunt_saves_lover",
     type = ROLE_CONVAR_TYPE_BOOL
 })

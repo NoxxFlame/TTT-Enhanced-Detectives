@@ -1,6 +1,102 @@
 local hook = hook
 
--- Tutorial
+------------------
+-- TRANSLATIONS --
+------------------
+
+hook.Add("Initialize", "EnhancedMedium_Translations_Initialize", function()
+    -- Target ID
+    LANG.AddToLanguage("english", "target_haunted_medium", "HAUNTED BY MEDIUM")
+end)
+
+------------------
+-- CUPID LOVERS --
+------------------
+
+local function IsLoverHaunting(cli, target)
+    local loverSID = cli:GetNWString("TTTCupidLover", "")
+    local lover = player.GetBySteamID64(loverSID)
+    return IsPlayer(target) and IsPlayer(lover) and target:GetNWBool("MediumHaunted", false) and lover:GetNWString("MediumHauntingTarget", "") == target:SteamID64()
+end
+
+---------------
+-- TARGET ID --
+---------------
+
+hook.Add("TTTTargetIDPlayerText", "EnhancedMedium_TTTTargetIDPlayerText", function(ent, cli, text, col, secondary_text)
+    if IsLoverHaunting(cli, ent) then
+        return LANG.GetTranslation("target_haunted_medium"), ROLE_COLORS_RADAR[ROLE_MEDIUM]
+    end
+end)
+
+ROLE_IS_TARGETID_OVERRIDDEN[ROLE_MEDIUM] = function(ply, target)
+    if not IsPlayer(target) then return end
+    if not IsLoverHaunting(ply, target) then return end
+
+    ------ icon,  ring,  text
+    return false, false, target:GetNWBool("MediumHaunted", false)
+end
+
+----------------
+-- SCOREBOARD --
+----------------
+
+hook.Add("TTTScoreboardPlayerRole", "EnhancedMedium_TTTScoreboardPlayerRole", function(ply, client, c, roleStr)
+    if IsLoverHaunting(client, ply) then
+        return c, roleStr, ROLE_MEDIUM
+    end
+end)
+
+hook.Add("TTTScoreboardPlayerName", "EnhancedMedium_TTTScoreboardPlayerName", function(ply, cli, text)
+
+    if IsLoverHaunting(cli, ply) then
+        return ply:Nick() .. " (" .. LANG.GetTranslation("target_haunted_medium") .. ")"
+    end
+end)
+
+ROLE_IS_SCOREBOARD_INFO_OVERRIDDEN[ROLE_MEDIUM] = function(ply, target)
+    if not IsPlayer(target) then return end
+    if not IsLoverHaunting(ply, target) then return end
+
+    ------ name, role
+    return true, true
+end
+
+--------------
+-- HAUNTING --
+--------------
+
+hook.Add("TTTSpectatorShowHUD", "EnhancedMedium_Haunting_TTTSpectatorShowHUD", function(cli, tgt)
+    if not cli:IsMedium() then return end
+
+    local L = LANG.GetUnsafeLanguageTable()
+    local willpower_colors = {
+        border = COLOR_WHITE,
+        background = Color(17, 115, 135, 222),
+        fill = Color(82, 226, 255, 255)
+    }
+    local powers = {
+        [L.haunt_move] = GetGlobalInt("ttt_medium_killer_haunt_move_cost", 25),
+        [L.haunt_jump] = GetGlobalInt("ttt_medium_killer_haunt_jump_cost", 50),
+        [L.haunt_drop] = GetGlobalInt("ttt_medium_killer_haunt_drop_cost", 75),
+        [L.haunt_attack] = GetGlobalInt("ttt_medium_killer_haunt_attack_cost", 100)
+    }
+    local max_power = GetGlobalInt("ttt_medium_killer_haunt_power_max", 100)
+    local current_power = cli:GetNWInt("MediumPossessingPower", 0)
+
+    CRHUD:PaintPowersHUD(powers, max_power, current_power, willpower_colors, L.haunt_title)
+end)
+
+hook.Add("TTTShouldPlayerSmoke", "EnhancedMedium_Haunting_TTTShouldPlayerSmoke", function(v, client, shouldSmoke, smokeColor, smokeParticle, smokeOffset)
+    if v:GetNWBool("MediumHaunted", false) and GetGlobalBool("ttt_medium_killer_smoke", false) then
+        return true
+    end
+end)
+
+--------------
+-- TUTORIAL --
+--------------
+
 hook.Add("TTTTutorialRoleTextExtra", "EnhancedMedium_TTTTutorialRoleTextExtra", function(role, titleLabel, roleIcon, htmlData)
     if role == ROLE_MEDIUM then
         local roleColor = ROLE_COLORS[ROLE_INNOCENT]
@@ -43,34 +139,5 @@ hook.Add("TTTTutorialRoleTextExtra", "EnhancedMedium_TTTTutorialRoleTextExtra", 
         end
 
         return htmlData
-    end
-end)
-
--- Haunting HUD
-hook.Add("TTTSpectatorShowHUD", "EnhancedMedium_Haunting_TTTSpectatorShowHUD", function(cli, tgt)
-    if not cli:IsMedium() then return end
-
-    local L = LANG.GetUnsafeLanguageTable()
-    local willpower_colors = {
-        border = COLOR_WHITE,
-        background = Color(17, 115, 135, 222),
-        fill = Color(82, 226, 255, 255)
-    }
-    local powers = {
-        [L.haunt_move] = GetGlobalInt("ttt_medium_killer_haunt_move_cost", 25),
-        [L.haunt_jump] = GetGlobalInt("ttt_medium_killer_haunt_jump_cost", 50),
-        [L.haunt_drop] = GetGlobalInt("ttt_medium_killer_haunt_drop_cost", 75),
-        [L.haunt_attack] = GetGlobalInt("ttt_medium_killer_haunt_attack_cost", 100)
-    }
-    local max_power = GetGlobalInt("ttt_medium_killer_haunt_power_max", 100)
-    local current_power = cli:GetNWInt("MediumHauntingPower", 0)
-
-    CRHUD:PaintPowersHUD(powers, max_power, current_power, willpower_colors, L.haunt_title)
-end)
-
--- Haunting Smoke
-hook.Add("TTTShouldPlayerSmoke", "EnhancedMedium_Haunting_TTTShouldPlayerSmoke", function(v, client, shouldSmoke, smokeColor, smokeParticle, smokeOffset)
-    if v:GetNWBool("MediumHaunted", false) and GetGlobalBool("ttt_medium_killer_smoke", false) then
-        return true
     end
 end)
