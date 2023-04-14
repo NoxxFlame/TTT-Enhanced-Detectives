@@ -41,6 +41,8 @@ hook.Add("TTTSyncGlobals", "EnhancedMedium_TTTSyncGlobals", function()
     SetGlobalInt("ttt_medium_killer_haunt_drop_cost", medium_killer_haunt_drop_cost:GetInt())
 end)
 
+local cured = Sound("items/smallmedkit1.wav")
+
 --------------
 -- HAUNTING --
 --------------
@@ -174,9 +176,8 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
         end
         victim:PrintMessage(HUD_PRINTCENTER, "Your attacker has been haunted.")
 
-        local loverSID = ""
         if medium_haunt_saves_lover:GetBool() then
-            loverSID = victim:GetNWString("TTTCupidLover", "")
+            local loverSID = victim:GetNWString("TTTCupidLover", "")
             if loverSID ~= "" then
                 local lover = player.GetBySteamID64(loverSID)
                 lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died... but they are haunting someone!")
@@ -356,7 +357,7 @@ local function IsPhantomHaunting(ply)
 end
 
 hook.Add("TTTCupidShouldLoverSurvive", "Phantom_TTTCupidShouldLoverSurvive", function(ply, lover)
-    if phantom_haunt_saves_lover:GetBool() and (IsPhantomHaunting(ply) or IsPhantomHaunting(lover)) then
+    if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() and (IsPhantomHaunting(ply) or IsPhantomHaunting(lover)) then
         return true
     end
 end)
@@ -383,7 +384,7 @@ local function IsMediumHaunting(ply)
 end
 
 hook.Add("TTTCupidShouldLoverSurvive", "EnhancedMedium_TTTCupidShouldLoverSurvive", function(ply, lover)
-    if phantom_haunt_saves_lover:GetBool() and (IsMediumHaunting(ply) or IsMediumHaunting(lover)) then
+    if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() and (IsMediumHaunting(ply) or IsMediumHaunting(lover)) then
         return true
     end
 end)
@@ -407,8 +408,8 @@ end)
 
 hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, class)
     if class == "weapon_pha_exorcism" then
-        function SWEP:DoCleanse()
-            local owner = self:GetOwner()
+        SWEP.DoCleanse = function(weap, ply)
+            local owner = weap:GetOwner()
             if IsPlayer(ply) and ply:Alive() and not ply:IsSpec() then
                 ply:EmitSound(cured)
 
@@ -458,12 +459,12 @@ hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, cla
                     end
                 end
 
-                self:Remove()
+                weap:Remove()
             else
                 if ply == owner then
-                    self:SetNextSecondaryFire(CurTime() + 1)
+                    weap:SetNextSecondaryFire(CurTime() + 1)
                 else
-                    self:SetNextPrimaryFire(CurTime() + 1)
+                    weap:SetNextPrimaryFire(CurTime() + 1)
                 end
             end
         end
