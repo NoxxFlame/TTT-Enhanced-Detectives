@@ -111,12 +111,36 @@ end)
 
 hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, attacker)
     local valid_kill = IsPlayer(attacker) and attacker ~= victim and GetRoundState() == ROUND_ACTIVE
-    if valid_kill and victim:IsMedium() and not victim:GetNWBool("IsZombifying", false) then
+    if valid_kill and victim:IsMedium() then
+        local attacker_alive = attacker:Alive() and not attacker:IsSpec()
+        local will_posses = medium_killer_haunt:GetBool() and not victim:IsZombifying() and attacker_alive
+
+        local loverSID = ""
+        if medium_haunt_saves_lover:GetBool() and will_posses then
+            loverSID = victim:GetNWString("TTTCupidLover", "")
+        end
+
+        if medium_announce_death:GetBool() then
+            for _, v in pairs(GetAllPlayers()) do
+                if v ~= attacker and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() and v:SteamID64() ~= loverSID then
+                    v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been killed.")
+                end
+            end
+        end
+
+        if victim:IsZombifying() then return end
+
+        if not attacker_alive then
+            victim:PrintMessage(HUD_PRINTCENTER, "Your attacker is already dead so you have nobody to haunt.")
+            victim:PrintMessage(HUD_PRINTTALK, "Your attacker is already dead so you have nobody to haunt.")
+            return
+        end
+
         attacker:SetNWBool("MediumHaunted", true)
         victim:SetNWBool("MediumHaunting", true)
         victim:SetNWString("MediumHauntingTarget", attacker:SteamID64())
 
-        if medium_killer_haunt:GetBool() then
+        if will_posses then
             victim:SetNWBool("MediumPossessing", true)
             victim:SetNWInt("MediumPossessingPower", 0)
             timer.Create(victim:Nick() .. "MediumPossessingPower", 1, 0, function()
@@ -135,12 +159,9 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
                         victim:PrintMessage(HUD_PRINTCENTER, "Your body has been destroyed, removing your tether to the world.")
                         victim:PrintMessage(HUD_PRINTTALK, "Your body has been destroyed, removing your tether to the world.")
 
-                        if medium_haunt_saves_lover:GetBool() then
-                            local loverSID = victim:GetNWString("TTTCupidLover", "")
-                            if loverSID ~= "" then
-                                local lover = player.GetBySteamID64(loverSID)
-                                lover:PrintMessage(HUD_PRINTTALK, "Your lover's body was destroyed!")
-                            end
+                        if medium_haunt_saves_lover:GetBool() and loverSID ~= "" then
+                            local lover = player.GetBySteamID64(loverSID)
+                            lover:PrintMessage(HUD_PRINTTALK, "Your lover's body was destroyed!")
                         end
                         return
                     end
@@ -166,7 +187,7 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
             end)
         end
 
-        -- Delay this message so the player can see the target update message
+        -- Delay this message so the player can see whatever other message is being shown on death
         if attacker:ShouldDelayAnnouncements() then
             timer.Simple(3, function()
                 attacker:PrintMessage(HUD_PRINTCENTER, "You have been haunted.")
@@ -176,20 +197,9 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
         end
         victim:PrintMessage(HUD_PRINTCENTER, "Your attacker has been haunted.")
 
-        if medium_haunt_saves_lover:GetBool() then
-            local loverSID = victim:GetNWString("TTTCupidLover", "")
-            if loverSID ~= "" then
-                local lover = player.GetBySteamID64(loverSID)
-                lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died... but they are haunting someone!")
-            end
-        end
-
-        if medium_announce_death:GetBool() then
-            for _, v in pairs(GetAllPlayers()) do
-                if v ~= attacker and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
-                    v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been killed.")
-                end
-            end
+        if loverSID ~= "" then
+            local lover = player.GetBySteamID64(loverSID)
+            lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died... but they are haunting someone!")
         end
 
         local sid = victim:SteamID64()
