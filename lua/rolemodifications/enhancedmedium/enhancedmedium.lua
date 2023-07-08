@@ -362,39 +362,12 @@ end)
 -- CUPID LOVERS --
 ------------------
 
-local function IsPhantomHaunting(ply)
-    return ply:GetNWBool("PhantomHaunting", false) and ply:IsPhantom() and not ply:Alive()
-end
-
-hook.Add("TTTCupidShouldLoverSurvive", "Phantom_TTTCupidShouldLoverSurvive", function(ply, lover)
-    if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() and (IsPhantomHaunting(ply) or IsPhantomHaunting(lover)) then
-        return true
-    end
-end)
-
-hook.Add("PostPlayerDeath", "Phantom_Lovers_PostPlayerDeath", function(ply)
-    local loverSID = ply:GetNWString("TTTCupidLover", "")
-    if loverSID == "" then return end
-
-    local lover = player.GetBySteamID64(loverSID)
-    if not IsPlayer(lover) then return end
-
-    if IsPhantomHaunting(lover) then
-        lover:PrintMessage(HUD_PRINTTALK, "Your lover has died and so you will not survive if you respawn!")
-        lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died and so you will not survive if you respawn!")
-    end
-end)
-
-------------------
--- CUPID LOVERS --
-------------------
-
 local function IsMediumHaunting(ply)
     return ply:GetNWBool("MediumHaunting", false) and ply:IsMedium() and not ply:Alive()
 end
 
 hook.Add("TTTCupidShouldLoverSurvive", "EnhancedMedium_TTTCupidShouldLoverSurvive", function(ply, lover)
-    if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() and (IsMediumHaunting(ply) or IsMediumHaunting(lover)) then
+    if medium_haunt_saves_lover:GetBool() and (IsMediumHaunting(ply) or IsMediumHaunting(lover)) then
         return true
     end
 end)
@@ -458,7 +431,7 @@ hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, cla
                             timer.Remove(v:Nick() .. "MediumPossessingSpectate")
                             v:PrintMessage(HUD_PRINTCENTER, "Your spirit has been cleansed from your target.")
 
-                            if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() then
+                            if medium_haunt_saves_lover:GetBool() then
                                 local loverSID = v:GetNWString("TTTCupidLover", "")
                                 if loverSID ~= "" then
                                     local lover = player.GetBySteamID64(loverSID)
