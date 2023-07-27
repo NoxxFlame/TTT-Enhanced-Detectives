@@ -14,7 +14,8 @@ hook.Add("TTTTutorialRoleTextExtra", "EnhancedTracker_TTTTutorialRoleTextExtra",
         local roleColor = ROLE_COLORS[ROLE_INNOCENT]
 
         -- Blindness
-        if tracker_blind_time:GetInt() > 0 then
+        local blindTime = tracker_blind_time:GetInt()
+        if blindTime > 0 then
             htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>Anyone who kills the " .. ROLE_STRINGS[ROLE_TRACKER] .. " is <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>blinded</span> by tears and cannot see for " .. tostring(blindTime) .. " second"
             if blindTime ~= 1 then
                 htmlData = htmlData .. "s"
