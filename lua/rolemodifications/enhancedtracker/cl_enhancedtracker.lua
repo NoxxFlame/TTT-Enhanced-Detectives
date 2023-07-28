@@ -2,13 +2,19 @@ local hook = hook
 local IsValid = IsValid
 local surface = surface
 
+-------------
+-- CONVARS --
+-------------
+
+local tracker_blind_time = GetConVar("ttt_tracker_blind_time")
+
 -- Tutorial
 hook.Add("TTTTutorialRoleTextExtra", "EnhancedTracker_TTTTutorialRoleTextExtra", function(role, titleLabel, roleIcon, htmlData)
     if role == ROLE_TRACKER then
         local roleColor = ROLE_COLORS[ROLE_INNOCENT]
 
         -- Blindness
-        local blindTime = GetGlobalInt("ttt_tracker_blind_time", 5)
+        local blindTime = tracker_blind_time:GetInt()
         if blindTime > 0 then
             htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>Anyone who kills the " .. ROLE_STRINGS[ROLE_TRACKER] .. " is <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>blinded</span> by tears and cannot see for " .. tostring(blindTime) .. " second"
             if blindTime ~= 1 then

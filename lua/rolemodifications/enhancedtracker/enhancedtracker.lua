@@ -7,13 +7,11 @@ local timer = timer
 
 local GetAllPlayers = player.GetAll
 
--- ConVars
-local tracker_blind_time = CreateConVar("ttt_tracker_blind_time", "5", FCVAR_NONE, "The number of seconds to blind the Tracker's killer. Set to 0 to disable.", 0, 100)
+-------------
+-- CONVARS --
+-------------
 
--- Globals
-hook.Add("TTTSyncGlobals", "EnhancedTracker_TTTSyncGlobals", function()
-    SetGlobalInt("ttt_tracker_blind_time", tracker_blind_time:GetInt())
-end)
+local tracker_blind_time = GetConVar("ttt_tracker_blind_time")
 
 -- Manage Death
 hook.Add("PlayerDeath", "EnhancedTracker_PlayerDeath", function( victim, infl, attacker)

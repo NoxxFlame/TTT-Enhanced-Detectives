@@ -1,5 +1,17 @@
 local hook = hook
 
+-------------
+-- CONVARS --
+-------------
+
+local medium_killer_smoke = GetConVar("ttt_medium_killer_smoke")
+local medium_killer_haunt = GetConVar("ttt_medium_killer_haunt")
+local medium_killer_haunt_power_max = GetConVar("ttt_medium_killer_haunt_power_max")
+local medium_killer_haunt_move_cost = GetConVar("ttt_medium_killer_haunt_move_cost")
+local medium_killer_haunt_jump_cost = GetConVar("ttt_medium_killer_haunt_jump_cost")
+local medium_killer_haunt_drop_cost = GetConVar("ttt_medium_killer_haunt_drop_cost")
+local medium_killer_haunt_attack_cost = GetConVar("ttt_medium_killer_haunt_attack_cost")
+
 ------------------
 -- TRANSLATIONS --
 ------------------
@@ -76,19 +88,19 @@ hook.Add("TTTSpectatorShowHUD", "EnhancedMedium_Haunting_TTTSpectatorShowHUD", f
         fill = Color(82, 226, 255, 255)
     }
     local powers = {
-        [L.haunt_move] = GetGlobalInt("ttt_medium_killer_haunt_move_cost", 25),
-        [L.haunt_jump] = GetGlobalInt("ttt_medium_killer_haunt_jump_cost", 50),
-        [L.haunt_drop] = GetGlobalInt("ttt_medium_killer_haunt_drop_cost", 75),
-        [L.haunt_attack] = GetGlobalInt("ttt_medium_killer_haunt_attack_cost", 100)
+        [L.haunt_move] = medium_killer_haunt_move_cost:GetInt(),
+        [L.haunt_jump] = medium_killer_haunt_jump_cost:GetInt(),
+        [L.haunt_drop] = medium_killer_haunt_drop_cost:GetInt(),
+        [L.haunt_attack] = medium_killer_haunt_attack_cost:GetInt()
     }
-    local max_power = GetGlobalInt("ttt_medium_killer_haunt_power_max", 100)
+    local max_power = medium_killer_haunt_power_max:GetInt()
     local current_power = cli:GetNWInt("MediumPossessingPower", 0)
 
     CRHUD:PaintPowersHUD(powers, max_power, current_power, willpower_colors, L.haunt_title)
 end)
 
 hook.Add("TTTShouldPlayerSmoke", "EnhancedMedium_Haunting_TTTShouldPlayerSmoke", function(v, client, shouldSmoke, smokeColor, smokeParticle, smokeOffset)
-    if v:GetNWBool("MediumHaunted", false) and GetGlobalBool("ttt_medium_killer_smoke", false) then
+    if v:GetNWBool("MediumHaunted", false) and medium_killer_smoke:GetBool() then
         return true
     end
 end)
@@ -105,17 +117,17 @@ hook.Add("TTTTutorialRoleTextExtra", "EnhancedMedium_TTTTutorialRoleTextExtra", 
         htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>If the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is killed, they will <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>be resurrected</span> if the person that killed them then dies.</span>"
 
         -- Smoke
-        if GetGlobalBool("ttt_medium_killer_smoke", false) then
+        if medium_killer_smoke:GetBool() then
             htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>Before the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is respawned, their killer is enveloped in a <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>shroud of smoke</span>, revealing themselves as the " .. ROLE_STRINGS[ROLE_PHANTOM] .. "'s killer to other players.</span>"
         end
 
         -- Haunting
-        if GetGlobalBool("ttt_medium_killer_haunt", true) then
-            local max = GetGlobalInt("ttt_medium_killer_haunt_power_max", 100)
-            local move_cost = GetGlobalInt("ttt_medium_killer_haunt_move_cost", 25)
-            local jump_cost = GetGlobalInt("ttt_medium_killer_haunt_jump_cost", 50)
-            local drop_cost = GetGlobalInt("ttt_medium_killer_haunt_drop_cost", 75)
-            local attack_cost = GetGlobalInt("ttt_medium_killer_haunt_attack_cost", 100)
+        if medium_killer_haunt:GetBool() then
+            local max = medium_killer_haunt_power_max:GetInt()
+            local move_cost = medium_killer_haunt_move_cost:GetInt()
+            local jump_cost = medium_killer_haunt_jump_cost:GetInt()
+            local drop_cost = medium_killer_haunt_drop_cost:GetInt()
+            local attack_cost = medium_killer_haunt_attack_cost:GetInt()
 
             -- Haunting powers
             if move_cost > 0 or jump_cost > 0 or drop_cost > 0 or attack_cost > 0 then

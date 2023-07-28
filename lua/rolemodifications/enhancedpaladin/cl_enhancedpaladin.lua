@@ -4,6 +4,19 @@ local math = math
 local MathCos = math.cos
 local MathSin = math.sin
 
+local function GetReplicatedValue(onreplicated, onglobal)
+    if CRVersion("1.9.3") then
+        return onreplicated()
+    end
+    return onglobal()
+end
+
+-------------
+-- CONVARS --
+-------------
+
+local paladin_explosion_protect_self = GetConVar("ttt_paladin_explosion_protect_self")
+
 -- Damage aura
 net.Receive("EnhancedPaladin_ShowDamageAura", function()
     local client = LocalPlayer()
@@ -12,7 +25,12 @@ net.Receive("EnhancedPaladin_ShowDamageAura", function()
     local pos = paladinPos + Vector(0, 0, 30)
     if client:GetPos():Distance(pos) > 3000 then return end
 
-    local radius = GetGlobalFloat("ttt_paladin_aura_radius", 262.45)
+    local radius = GetReplicatedValue(function()
+            return GetConVar("ttt_paladin_aura_radius"):GetInt() * UNITS_PER_METER
+        end,
+        function()
+            return GetGlobalFloat("ttt_paladin_aura_radius", 262.45)
+        end)
     local auraEmitter = ParticleEmitter(paladinPos)
     auraEmitter:SetPos(pos)
 
@@ -40,7 +58,7 @@ hook.Add("TTTTutorialRoleTextExtra", "EnhancedPaladin_TTTTutorialRoleTextExtra",
 
         -- Explosion Reduction
         htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>The " .. ROLE_STRINGS[ROLE_PALADIN] .. "'s aura also gives players <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>explosion immunity</span> "
-        if GetGlobalBool("ttt_paladin_explosion_protect_self", false) then
+        if paladin_explosion_protect_self:GetBool() then
             htmlData = htmlData .. "which applies to the " .. ROLE_STRINGS[ROLE_PALADIN] .. " as well"
         else
             htmlData = htmlData .. "however this does NOT apply to the " .. ROLE_STRINGS[ROLE_PALADIN] .. "."
