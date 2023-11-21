@@ -112,7 +112,7 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
         if medium_announce_death:GetBool() then
             for _, v in pairs(GetAllPlayers()) do
                 if v ~= attacker and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() and v:SteamID64() ~= loverSID then
-                    v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been killed.")
+                    v:QueueMessage(MSG_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been killed.")
                 end
             end
         end
@@ -120,8 +120,7 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
         if victim:IsZombifying() then return end
 
         if not attacker_alive then
-            victim:PrintMessage(HUD_PRINTCENTER, "Your attacker is already dead so you have nobody to haunt.")
-            victim:PrintMessage(HUD_PRINTTALK, "Your attacker is already dead so you have nobody to haunt.")
+            victim:QueueMessage(MSG_PRINTBOTH, "Your attacker is already dead so you have nobody to haunt.")
             return
         end
 
@@ -145,8 +144,7 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
                         victim:SetNWBool("MediumPossessing", false)
                         victim:SetNWInt("MediumPossessingPower", 0)
 
-                        victim:PrintMessage(HUD_PRINTCENTER, "Your body has been destroyed, removing your tether to the world.")
-                        victim:PrintMessage(HUD_PRINTTALK, "Your body has been destroyed, removing your tether to the world.")
+                        victim:QueueMessage(MSG_PRINTBOTH, "Your body has been destroyed, removing your tether to the world.")
 
                         if medium_haunt_saves_lover:GetBool() and loverSID ~= "" then
                             local lover = player.GetBySteamID64(loverSID)
@@ -176,19 +174,12 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
             end)
         end
 
-        -- Delay this message so the player can see whatever other message is being shown on death
-        if attacker:ShouldDelayAnnouncements() then
-            timer.Simple(3, function()
-                attacker:PrintMessage(HUD_PRINTCENTER, "You have been haunted.")
-            end)
-        else
-            attacker:PrintMessage(HUD_PRINTCENTER, "You have been haunted.")
-        end
-        victim:PrintMessage(HUD_PRINTCENTER, "Your attacker has been haunted.")
+        attacker:QueueMessage(MSG_PRINTCENTER, "You have been haunted.")
+        victim:QueueMessage(MSG_PRINTCENTER, "Your attacker has been haunted.")
 
         if loverSID ~= "" then
             local lover = player.GetBySteamID64(loverSID)
-            lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died... but they are haunting someone!")
+            lover:QueueMessage(MSG_PRINTCENTER, "Your lover has died... but they are haunting someone!")
         end
 
         local sid = victim:SteamID64()
@@ -293,12 +284,10 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
                         end
                         deadMedium:SetHealth(health)
                         mediumBody:Remove()
-                        deadMedium:PrintMessage(HUD_PRINTCENTER, "Your attacker died and you have been respawned.")
-                        deadMedium:PrintMessage(HUD_PRINTTALK, "Your attacker died and you have been respawned.")
+                        deadMedium:QueueMessage(MSG_PRINTBOTH, "Your attacker died and you have been respawned.")
                         respawning[deadMedium:SteamID64()] = true
                     else
-                        deadMedium:PrintMessage(HUD_PRINTCENTER, "Your attacker died but your body has been destroyed.")
-                        deadMedium:PrintMessage(HUD_PRINTTALK, "Your attacker died but your body has been destroyed.")
+                        deadMedium:QueueMessage(MSG_PRINTBOTH, "Your attacker died but your body has been destroyed.")
                     end
                 end
             end
@@ -309,10 +298,10 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
             for _, v in pairs(GetAllPlayers()) do
                 if v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
                     if not respawning[v:SteamID64()] then
-                        v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
+                        v:QueueMessage(MSG_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
                     elseif respawnCount > 1 then
                         timer.Simple(3, function()
-                            v:PrintMessage(HUD_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
+                            v:QueueMessage(MSG_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
                         end)
                     end
                 end
@@ -369,8 +358,7 @@ hook.Add("PostPlayerDeath", "EnhancedMedium_Lovers_PostPlayerDeath", function(pl
     if not IsPlayer(lover) then return end
 
     if IsMediumHaunting(lover) then
-        lover:PrintMessage(HUD_PRINTTALK, "Your lover has died and so you will not survive if you respawn!")
-        lover:PrintMessage(HUD_PRINTCENTER, "Your lover has died and so you will not survive if you respawn!")
+        lover:QueueMessage(MSG_PRINTBOTH, "Your lover has died and so you will not survive if you respawn!")
     end
 end)
 
@@ -395,13 +383,13 @@ hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, cla
                             v:SetNWInt("PhantomPossessingPower", 0)
                             timer.Remove(v:Nick() .. "PhantomPossessingPower")
                             timer.Remove(v:Nick() .. "PhantomPossessingSpectate")
-                            v:PrintMessage(HUD_PRINTCENTER, "Your spirit has been cleansed from your target.")
+                            v:QueueMessage(MSG_PRINTCENTER, "Your spirit has been cleansed from your target.")
 
                             if GetConVar("ttt_phantom_haunt_saves_lover"):GetBool() then
                                 local loverSID = v:GetNWString("TTTCupidLover", "")
                                 if loverSID ~= "" then
                                     local lover = player.GetBySteamID64(loverSID)
-                                    lover:PrintMessage(HUD_PRINTTALK, "Your lover was exorcised from their host!")
+                                    lover:QueueMessage(MSG_PRINTTALK, "Your lover was exorcised from their host!")
                                 end
                             end
                         end
@@ -418,13 +406,13 @@ hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, cla
                             v:SetNWInt("MediumPossessingPower", 0)
                             timer.Remove(v:Nick() .. "MediumPossessingPower")
                             timer.Remove(v:Nick() .. "MediumPossessingSpectate")
-                            v:PrintMessage(HUD_PRINTCENTER, "Your spirit has been cleansed from your target.")
+                            v:QueueMessage(MSG_PRINTCENTER, "Your spirit has been cleansed from your target.")
 
                             if medium_haunt_saves_lover:GetBool() then
                                 local loverSID = v:GetNWString("TTTCupidLover", "")
                                 if loverSID ~= "" then
                                     local lover = player.GetBySteamID64(loverSID)
-                                    lover:PrintMessage(HUD_PRINTTALK, "Your lover was exorcised from their host!")
+                                    lover:QueueMessage(MSG_PRINTTALK, "Your lover was exorcised from their host!")
                                 end
                             end
                         end
