@@ -27,7 +27,7 @@ hook.Add("PlayerDeath", "EnhancedTracker_PlayerDeath", function( victim, infl, a
                 attacker:SetNWBool("blindedbytracker", false)
             end)
 
-            attacker:PrintMessage(HUD_PRINTCENTER, "You have killed the " .. ROLE_STRINGS[ROLE_TRACKER] .. "! You are blinded by guilt for " .. duration .. " seconds")
+            attacker:QueueMessage(MSG_PRINTCENTER, "You have killed the " .. ROLE_STRINGS[ROLE_TRACKER] .. "! You are blinded by guilt for " .. duration .. " seconds")
         end
     end
 end)

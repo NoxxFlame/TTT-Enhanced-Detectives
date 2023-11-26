@@ -4,13 +4,6 @@ local math = math
 local MathCos = math.cos
 local MathSin = math.sin
 
-local function GetReplicatedValue(onreplicated, onglobal)
-    if CRVersion("1.9.3") then
-        return onreplicated()
-    end
-    return onglobal()
-end
-
 -------------
 -- CONVARS --
 -------------
@@ -25,12 +18,7 @@ net.Receive("EnhancedPaladin_ShowDamageAura", function()
     local pos = paladinPos + Vector(0, 0, 30)
     if client:GetPos():Distance(pos) > 3000 then return end
 
-    local radius = GetReplicatedValue(function()
-            return GetConVar("ttt_paladin_aura_radius"):GetInt() * UNITS_PER_METER
-        end,
-        function()
-            return GetGlobalFloat("ttt_paladin_aura_radius", 262.45)
-        end)
+    local radius = GetConVar("ttt_paladin_aura_radius"):GetInt() * UNITS_PER_METER
     local auraEmitter = ParticleEmitter(paladinPos)
     auraEmitter:SetPos(pos)
 
