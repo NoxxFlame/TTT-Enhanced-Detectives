@@ -2,11 +2,10 @@ AddCSLuaFile()
 
 local hook = hook
 local IsValid = IsValid
-local pairs = pairs
 local player = player
 local util = util
 
-local GetAllPlayers = player.GetAll
+local PlayerIterator = player.Iterator
 
 util.AddNetworkString("EnhancedPaladin_ShowDamageAura")
 
@@ -26,7 +25,7 @@ hook.Add("EntityTakeDamage", "EnhancedPaladin_EntityTakeDamage", function(ent, d
         if not ent:IsPaladin() or paladin_explosion_protect_self:GetBool() then
             local paladin = nil
             local radius = GetConVar("ttt_paladin_aura_radius"):GetInt() * UNITS_PER_METER
-            for _, v in pairs(GetAllPlayers()) do
+            for _, v in PlayerIterator() do
                 if v:IsActivePaladin() and v:GetPos():Distance(ent:GetPos()) <= radius then
                     paladin = v
                     break

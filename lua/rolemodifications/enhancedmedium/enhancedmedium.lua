@@ -9,7 +9,7 @@ local player = player
 local table = table
 local timer = timer
 
-local GetAllPlayers = player.GetAll
+local PlayerIterator = player.Iterator
 
 -------------
 -- CONVARS --
@@ -38,7 +38,7 @@ local cured = Sound("items/smallmedkit1.wav")
 
 local deadMediums = {}
 hook.Add("TTTPrepareRound", "EnhancedMedium_TTTPrepareRound", function()
-    for _, v in pairs(GetAllPlayers()) do
+    for _, v in PlayerIterator() do
         v:SetNWBool("MediumHaunted", false)
         v:SetNWBool("MediumHaunting", false)
         v:SetNWString("MediumHauntingTarget", nil)
@@ -110,7 +110,7 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
         end
 
         if medium_announce_death:GetBool() then
-            for _, v in pairs(GetAllPlayers()) do
+            for _, v in PlayerIterator() do
                 if v ~= attacker and v:IsDetectiveLike() and v:Alive() and not v:IsSpec() and v:SteamID64() ~= loverSID then
                     v:QueueMessage(MSG_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been killed.")
                 end
@@ -295,7 +295,7 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
 
         local respawnCount = table.Count(respawning)
         if respawnCount > 0 and medium_announce_death:GetBool() then
-            for _, v in pairs(GetAllPlayers()) do
+            for _, v in PlayerIterator() do
                 if v:IsDetectiveLike() and v:Alive() and not v:IsSpec() then
                     if not respawning[v:SteamID64()] then
                         v:QueueMessage(MSG_PRINTCENTER, "The " .. ROLE_STRINGS[ROLE_MEDIUM] .. " has been respawned.")
@@ -380,7 +380,7 @@ hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, cla
                 ply:EmitSound(cured)
 
                 if ply:GetNWBool("PhantomHaunted", false) then
-                    for _, v in pairs(player.GetAll()) do
+                    for _, v in PlayerIterator() do
                         if v:GetNWString("PhantomHauntingTarget", "") == ply:SteamID64() then
                             ply:SetNWBool("PhantomHaunted", false)
                             v:SetNWBool("PhantomHaunting", false)
@@ -403,7 +403,7 @@ hook.Add("PreRegisterSWEP", "EnhancedMedium_PreRegisterSWEP", function(SWEP, cla
                 end
 
                 if ply:GetNWBool("MediumHaunted", false) then
-                    for _, v in pairs(player.GetAll()) do
+                    for _, v in PlayerIterator() do
                         if v:GetNWString("MediumHauntingTarget", "") == ply:SteamID64() then
                             ply:SetNWBool("MediumHaunted", false)
                             v:SetNWBool("MediumHaunting", false)
