@@ -37,7 +37,7 @@ hook.Add("EntityTakeDamage", "EnhancedPaladin_EntityTakeDamage", function(ent, d
                 dmginfo:SetDamage(0)
 
                 net.Start("EnhancedPaladin_ShowDamageAura")
-                net.WriteEntity(paladin)
+                    net.WritePlayer(paladin)
                 net.Broadcast()
             end
         end
