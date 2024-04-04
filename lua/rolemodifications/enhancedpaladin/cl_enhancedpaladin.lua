@@ -13,7 +13,7 @@ local paladin_explosion_protect_self = GetConVar("ttt_paladin_explosion_protect_
 -- Damage aura
 net.Receive("EnhancedPaladin_ShowDamageAura", function()
     local client = LocalPlayer()
-    local paladin = net.ReadEntity()
+    local paladin = net.ReadPlayer()
     local paladinPos = paladin:GetPos()
     local pos = paladinPos + Vector(0, 0, 30)
     if client:GetPos():Distance(pos) > 3000 then return end

@@ -1,11 +1,10 @@
 AddCSLuaFile()
 
 local hook = hook
-local pairs = pairs
 local player = player
 local timer = timer
 
-local GetAllPlayers = player.GetAll
+local PlayerIterator = player.Iterator
 
 -------------
 -- CONVARS --
@@ -34,7 +33,7 @@ end)
 
 -- Cleanup
 hook.Add("TTTEndRound", "EnhancedTracker_TTTEndRound", function()
-    for _, v in pairs(GetAllPlayers()) do
+    for _, v in PlayerIterator() do
         v:SetNWBool("blindedbytracker", false)
     end
     timer.Remove("EnhancedTrackerBlindTimer")
