@@ -327,12 +327,7 @@ hook.Add("PlayerFootstep", "EnhancedMedium_PlayerFootstep", function(ply, pos, f
 
     -- This player killed a Medium. Tell everyone where their foot steps should go
     net.Start("TTT_PlayerFootstep")
-        -- TODO: Remove after 2.1.10 is pushed to release
-        if CRVersion("2.1.10") then
-            net.WritePlayer(ply)
-        else
-            net.WriteEntity(ply)
-        end
+        net.WritePlayer(ply)
         net.WriteVector(pos)
         net.WriteAngle(ply:GetAimVector():Angle())
         net.WriteBit(foot)
