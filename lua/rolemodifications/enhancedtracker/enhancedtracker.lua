@@ -16,13 +16,13 @@ local tracker_blind_time = GetConVar("ttt_tracker_blind_time")
 hook.Add("PlayerDeath", "EnhancedTracker_PlayerDeath", function( victim, infl, attacker)
     local valid_kill = IsPlayer(attacker) and attacker ~= victim and GetRoundState() == ROUND_ACTIVE
 
-    if valid_kill and victim:IsTracker() and not victim:GetNWBool("IsZombifying", false) then
+    if valid_kill and victim:IsTracker() and not victim:IsRespawning() then
         local duration = tracker_blind_time:GetInt()
 
         if duration > 0 then
             attacker:SetNWBool("blindedbytracker", true)
 
-            timer.Create("EnhancedTrackerBlindTimer", duration, 1, function()
+            timer.Create("EnhancedTrackerBlindTimer_" .. attacker:SteamID64(), duration, 1, function()
                 attacker:SetNWBool("blindedbytracker", false)
             end)
 
@@ -35,6 +35,6 @@ end)
 hook.Add("TTTEndRound", "EnhancedTracker_TTTEndRound", function()
     for _, v in PlayerIterator() do
         v:SetNWBool("blindedbytracker", false)
+        timer.Remove("EnhancedTrackerBlindTimer_" .. v:SteamID64())
     end
-    timer.Remove("EnhancedTrackerBlindTimer")
 end)
