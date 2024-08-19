@@ -33,6 +33,11 @@ table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
     decimal = 0
 })
 table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
+    cvar = "ttt_medium_respawn_limit",
+    type = ROLE_CONVAR_TYPE_NUM,
+    decimal = 0
+})
+table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
     cvar = "ttt_medium_weaker_each_respawn",
     type = ROLE_CONVAR_TYPE_BOOL
 })
@@ -60,6 +65,11 @@ table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
 })
 table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
     cvar = "ttt_medium_killer_haunt_power_rate",
+    type = ROLE_CONVAR_TYPE_NUM,
+    decimal = 0
+})
+table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
+    cvar = "ttt_medium_killer_haunt_power_starting",
     type = ROLE_CONVAR_TYPE_NUM,
     decimal = 0
 })
