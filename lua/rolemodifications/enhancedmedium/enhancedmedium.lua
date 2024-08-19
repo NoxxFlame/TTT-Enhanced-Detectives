@@ -15,20 +15,23 @@ local PlayerIterator = player.Iterator
 -- CONVARS --
 -------------
 
-local medium_respawn_health = CreateConVar("ttt_medium_respawn_health", "50", FCVAR_NONE, "The amount of health a medium will respawn with", 1, 100)
-local medium_weaker_each_respawn = CreateConVar("ttt_medium_weaker_each_respawn", "0")
-local medium_announce_death = CreateConVar("ttt_medium_announce_death", "0")
-local medium_killer_footstep_time = CreateConVar("ttt_medium_killer_footstep_time", "0", FCVAR_NONE, "The amount of time a medium's killer's footsteps should show before fading. Set to 0 to disable", 1, 60)
-local medium_killer_haunt_power_rate = CreateConVar("ttt_medium_killer_haunt_power_rate", "10", FCVAR_NONE, "The amount of power to regain per second when a medium is haunting their killer", 1, 25)
-local medium_killer_haunt_without_body = CreateConVar("ttt_medium_killer_haunt_without_body", "1")
-local medium_haunt_saves_lover = CreateConVar("ttt_medium_haunt_saves_lover", "1", FCVAR_NONE, "Whether the medium's lover should survive if the medium is haunting a player", 0, 1)
-
 local medium_killer_haunt = GetConVar("ttt_medium_killer_haunt")
 local medium_killer_haunt_power_max = GetConVar("ttt_medium_killer_haunt_power_max")
 local medium_killer_haunt_move_cost = GetConVar("ttt_medium_killer_haunt_move_cost")
 local medium_killer_haunt_jump_cost = GetConVar("ttt_medium_killer_haunt_jump_cost")
 local medium_killer_haunt_drop_cost = GetConVar("ttt_medium_killer_haunt_drop_cost")
 local medium_killer_haunt_attack_cost = GetConVar("ttt_medium_killer_haunt_attack_cost")
+local medium_weaker_each_respawn = GetConVar("ttt_medium_weaker_each_respawn")
+local medium_announce_death = GetConVar("ttt_medium_announce_death")
+local medium_killer_footstep_time = GetConVar("ttt_medium_killer_footstep_time")
+local medium_respawn = GetConVar("ttt_medium_respawn")
+
+local medium_respawn_health = CreateConVar("ttt_medium_respawn_health", "50", FCVAR_NONE, "The amount of health a medium will respawn with", 1, 100)
+local medium_respawn_limit = CreateConVar("ttt_medium_respawn_limit", "0", FCVAR_NONE, "The amount of times a medium can respawn. Set to 0 to have no limit", 0, 20)
+local medium_killer_haunt_power_rate = CreateConVar("ttt_medium_killer_haunt_power_rate", "10", FCVAR_NONE, "The amount of power to regain per second when a medium is haunting their killer", 1, 25)
+local medium_killer_haunt_power_starting = CreateConVar("ttt_medium_killer_haunt_power_starting", "0", FCVAR_NONE, "The amount of power the medium starts with", 0, 200)
+local medium_killer_haunt_without_body = CreateConVar("ttt_medium_killer_haunt_without_body", "1")
+local medium_haunt_saves_lover = CreateConVar("ttt_medium_haunt_saves_lover", "1", FCVAR_NONE, "Whether the medium's lover should survive if the medium is haunting a player", 0, 1)
 
 local cured = Sound("items/smallmedkit1.wav")
 
@@ -130,7 +133,7 @@ hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, att
 
         if will_posses then
             victim:SetNWBool("MediumPossessing", true)
-            victim:SetNWInt("MediumPossessingPower", 0)
+            victim:SetNWInt("MediumPossessingPower", medium_killer_haunt_power_starting:GetInt())
             timer.Create(victim:Nick() .. "MediumPossessingPower", 1, 0, function()
                 -- If haunting without a body is disabled, check to make sure the body exists still
                 if not medium_killer_haunt_without_body:GetBool() then
@@ -266,7 +269,15 @@ hook.Add("DoPlayerDeath", "EnhancedMedium_DoPlayerDeath", function(ply, attacker
                 deadMedium:SetNWInt("MediumPossessingPower", 0)
                 timer.Remove(deadMedium:Nick() .. "MediumPossessingPower")
                 timer.Remove(deadMedium:Nick() .. "MediumPossessingSpectate")
-                if deadMedium:IsMedium() and not deadMedium:Alive() then
+
+                if not deadMedium:IsMedium() or deadMedium:Alive() then continue end
+
+                local respawn_limit = medium_respawn_limit:GetInt()
+                if respawn_limit > 0 and medium.times > respawn_limit then
+                    deadMedium:QueueMessage(MSG_PRINTBOTH, "Your attacker died and you have reached your respawn limit so your spirit is now free to roam.")
+                elseif not medium_respawn:GetBool() then
+                    deadMedium:QueueMessage(MSG_PRINTBOTH, "Your attacker died and your spirit is now free to roam.")
+                else
                     -- Find the Medium's corpse
                     local mediumBody = deadMedium.server_ragdoll or deadMedium:GetRagdollEntity()
                     if IsValid(mediumBody) then

@@ -11,6 +11,10 @@ local medium_killer_haunt_move_cost = GetConVar("ttt_medium_killer_haunt_move_co
 local medium_killer_haunt_jump_cost = GetConVar("ttt_medium_killer_haunt_jump_cost")
 local medium_killer_haunt_drop_cost = GetConVar("ttt_medium_killer_haunt_drop_cost")
 local medium_killer_haunt_attack_cost = GetConVar("ttt_medium_killer_haunt_attack_cost")
+local medium_weaker_each_respawn = GetConVar("ttt_medium_weaker_each_respawn")
+local medium_announce_death = GetConVar("ttt_medium_announce_death")
+local medium_killer_footstep_time = GetConVar("ttt_medium_killer_footstep_time")
+local medium_respawn = GetConVar("ttt_medium_respawn")
 
 ------------------
 -- TRANSLATIONS --
@@ -114,11 +118,38 @@ hook.Add("TTTTutorialRoleTextExtra", "EnhancedMedium_TTTTutorialRoleTextExtra", 
         local roleColor = ROLE_COLORS[ROLE_INNOCENT]
 
         -- Respawn
-        htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>If the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is killed, they will <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>be resurrected</span> if the person that killed them then dies.</span>"
+        if medium_respawn:GetBool() then
+            htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>If the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is killed, they will <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>be resurrected</span> if the person that killed them then dies.</span>"
 
-        -- Smoke
-        if medium_killer_smoke:GetBool() then
-            htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>Before the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is respawned, their killer is enveloped in a <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>shroud of smoke</span>, revealing themselves as the " .. ROLE_STRINGS[ROLE_PHANTOM] .. "'s killer to other players.</span>"
+            -- Weaker each respawn
+            if medium_weaker_each_respawn:GetBool() then
+                htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>Each time the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is killed, they will respawn with <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>half as much health</span>, down to a minimum of 1hp.</span>"
+            end
+        end
+
+        -- Announce death
+        if medium_announce_death:GetBool() then
+            htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>When the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is killed, all " .. LANG.GetTranslation("detectives") .. " (and promoted " .. LANG.GetTranslation("detective") .. "-like roles) <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>are notified</span>.<span>"
+        end
+
+        local has_smoke = medium_killer_smoke:GetBool()
+        local has_footsteps = medium_killer_footstep_time:GetInt() > 0
+        -- Smoke and Killer footsteps
+        if has_smoke or has_footsteps then
+            htmlData = htmlData .. "<span style='display: block; margin-top: 10px;'>After the " .. ROLE_STRINGS[ROLE_MEDIUM] .. " is killed, their killer "
+            if has_smoke then
+                htmlData = htmlData .. "is enveloped in a <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>shroud of smoke</span>"
+            end
+
+            if has_smoke and has_footsteps then
+                htmlData = htmlData .. " and "
+            end
+
+            if has_footsteps then
+                htmlData = htmlData .. "leaves behind <span style='color: rgb(" .. roleColor.r .. ", " .. roleColor.g .. ", " .. roleColor.b .. ")'>bloody footprints</span>"
+            end
+
+            htmlData = htmlData .. ", revealing themselves as the " .. ROLE_STRINGS[ROLE_MEDIUM] .. "'s killer to other players.</span>"
         end
 
         -- Haunting

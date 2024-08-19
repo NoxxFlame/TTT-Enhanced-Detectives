@@ -18,7 +18,15 @@ CreateConVar("ttt_medium_killer_haunt_move_cost", "25", FCVAR_REPLICATED, "The a
 CreateConVar("ttt_medium_killer_haunt_jump_cost", "50", FCVAR_REPLICATED, "The amount of power to spend when a medium is making their killer jump via a haunting. Set to 0 to disable", 0, 100)
 CreateConVar("ttt_medium_killer_haunt_drop_cost", "75", FCVAR_REPLICATED, "The amount of power to spend when a medium is making their killer drop their weapon via a haunting. Set to 0 to disable", 0, 100)
 CreateConVar("ttt_medium_killer_haunt_attack_cost", "100", FCVAR_REPLICATED, "The amount of power to spend when a medium is making their killer attack via a haunting. Set to 0 to disable", 0, 100)
+CreateConVar("ttt_medium_weaker_each_respawn", "0", FCVAR_REPLICATED)
+CreateConVar("ttt_medium_announce_death", "0", FCVAR_REPLICATED)
+CreateConVar("ttt_medium_killer_footstep_time", "0", FCVAR_REPLICATED, "The amount of time a medium's killer's footsteps should show before fading. Set to 0 to disable", 1, 60)
+CreateConVar("ttt_medium_respawn", "1", FCVAR_REPLICATED, "Whether the medium should respawn when their killer is killed", 0, 1)
 
+table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
+    cvar = "ttt_medium_respawn",
+    type = ROLE_CONVAR_TYPE_BOOL
+})
 table.insert(ROLE_CONVARS[ROLE_MEDIUM], {
     cvar = "ttt_medium_respawn_health",
     type = ROLE_CONVAR_TYPE_NUM,
