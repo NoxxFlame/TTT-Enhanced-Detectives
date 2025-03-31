@@ -83,7 +83,7 @@ hook.Add("TTTPlayerSpawnForRound", "EnhancedMedium_TTTPlayerSpawnForRound", func
 end)
 
 -- Un-haunt the device owner if they used their device on the medium
-hook.Add("TTTPlayerRoleChangedByItem", "EnhancedMedium_TTTPlayerRoleChangedByItem", function(ply, tgt, itme)
+hook.Add("TTTPlayerRoleChangedByItem", "EnhancedMedium_TTTPlayerRoleChangedByItem", function(ply, tgt, item)
     if tgt:IsMedium() and tgt:GetNWString("MediumHauntingTarget", nil) == ply:SteamID64() then
         ply:SetNWBool("MediumHaunted", false)
     end
@@ -103,7 +103,7 @@ end)
 
 hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, attacker)
     local valid_kill = IsPlayer(attacker) and attacker ~= victim and GetRoundState() == ROUND_ACTIVE
-    if valid_kill and victim:IsMedium() then
+    if valid_kill and victim:IsMedium() and (not victim.IsRoleAbilityDisabled or not victim:IsRoleAbilityDisabled()) then
         local attacker_alive = attacker:Alive() and not attacker:IsSpec()
         local will_posses = medium_killer_haunt:GetBool() and not victim:IsZombifying() and attacker_alive
 

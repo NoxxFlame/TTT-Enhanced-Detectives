@@ -31,7 +31,7 @@ hook.Add("EntityTakeDamage", "EnhancedPaladin_EntityTakeDamage", function(ent, d
                     break
                 end
             end
-            if IsPlayer(paladin) then
+            if IsPlayer(paladin) and (not paladin.IsRoleAbilityDisabled or not paladin:IsRoleAbilityDisabled()) then
                 dmginfo:ScaleDamage(0)
                 dmginfo:SetDamage(0)
 
