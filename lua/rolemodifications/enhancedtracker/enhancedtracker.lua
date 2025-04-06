@@ -16,7 +16,7 @@ local tracker_blind_time = GetConVar("ttt_tracker_blind_time")
 hook.Add("PlayerDeath", "EnhancedTracker_PlayerDeath", function( victim, infl, attacker)
     local valid_kill = IsPlayer(attacker) and attacker ~= victim and GetRoundState() == ROUND_ACTIVE
 
-    if valid_kill and victim:IsTracker() and not victim:IsRespawning() and (not victim.IsRoleAbilityDisabled or not victim:IsRoleAbilityDisabled()) then
+    if valid_kill and victim:IsTracker() and not victim:IsRespawning() and not victim:IsRoleAbilityDisabled() then
         local duration = tracker_blind_time:GetInt()
 
         if duration > 0 then
