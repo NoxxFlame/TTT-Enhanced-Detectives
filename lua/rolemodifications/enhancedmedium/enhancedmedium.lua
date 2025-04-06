@@ -103,7 +103,7 @@ end)
 
 hook.Add("PlayerDeath", "EnhancedMedium_PlayerDeath", function(victim, infl, attacker)
     local valid_kill = IsPlayer(attacker) and attacker ~= victim and GetRoundState() == ROUND_ACTIVE
-    if valid_kill and victim:IsMedium() and (not victim.IsRoleAbilityDisabled or not victim:IsRoleAbilityDisabled()) then
+    if valid_kill and victim:IsMedium() and not victim:IsRoleAbilityDisabled() then
         local attacker_alive = attacker:Alive() and not attacker:IsSpec()
         local will_posses = medium_killer_haunt:GetBool() and not victim:IsZombifying() and attacker_alive
 
